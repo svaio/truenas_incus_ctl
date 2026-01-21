@@ -30,6 +30,7 @@ var g_configFileName string
 var g_configName string
 var g_hostName string
 var g_apiKey string
+var g_hostConfig map[string]interface{}
 
 func Execute() {
 	err := rootCmd.Execute()
@@ -84,6 +85,7 @@ func InitializeApiClient() core.Session {
 		}
 		g_hostName = host
 		g_apiKey = key
+		g_hostConfig = config
 		if _, exists := config["debug"]; exists {
 			g_debug = core.IsValueTrue(config, "debug")
 		}
@@ -286,4 +288,24 @@ func DebugJson(obj interface{}) {
 		}
 		fmt.Println(string(data))
 	}
+}
+
+// GetConfigString returns a string value from the host config, handling both string and numeric types.
+// Returns empty string if the key doesn't exist or config is nil.
+func GetConfigString(key string) string {
+	if g_hostConfig == nil {
+		return ""
+	}
+	if value, exists := g_hostConfig[key]; exists {
+		switch v := value.(type) {
+		case string:
+			return v
+		case float64:
+			// JSON numbers are parsed as float64
+			return fmt.Sprintf("%d", int(v))
+		case int:
+			return fmt.Sprintf("%d", v)
+		}
+	}
+	return ""
 }

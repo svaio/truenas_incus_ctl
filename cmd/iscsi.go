@@ -13,6 +13,29 @@ import (
 )
 
 const DEFAULT_ISCSI_PORT = 3260
+const DEFAULT_PORTAL_FLAG = ":"
+
+// getEffectivePortal returns the portal value, using config fallback if the flag is at default
+func getEffectivePortal(options FlagMap) string {
+	portal := options.allFlags["portal"]
+	if portal == DEFAULT_PORTAL_FLAG {
+		if configPortal := GetConfigString("portal"); configPortal != "" {
+			return configPortal
+		}
+	}
+	return portal
+}
+
+// getEffectiveInitiator returns the initiator value, using config fallback if the flag is empty
+func getEffectiveInitiator(options FlagMap) string {
+	initiator := options.allFlags["initiator"]
+	if initiator == "" {
+		if configInitiator := GetConfigString("initiator"); configInitiator != "" {
+			return configInitiator
+		}
+	}
+	return initiator
+}
 
 var iscsiCmd = &cobra.Command{
 	Use:   "iscsi",
@@ -154,12 +177,12 @@ func createIscsi(cmd *cobra.Command, api core.Session, args []string) error {
 		return err
 	}
 
-	portalId, err := LookupPortalIdOrCreate(api, DEFAULT_ISCSI_PORT, options.allFlags["portal"])
+	portalId, err := LookupPortalIdOrCreate(api, DEFAULT_ISCSI_PORT, getEffectivePortal(options))
 	if err != nil {
 		return err
 	}
 
-	initiatorId, err := LookupInitiatorOrCreateBlank(api, options.allFlags["initiator"])
+	initiatorId, err := LookupInitiatorOrCreateBlank(api, getEffectiveInitiator(options))
 	if err != nil {
 		return err
 	}
@@ -431,7 +454,7 @@ func testIscsiImpl(api core.Session, options FlagMap, checkedServiceState bool) 
 		}
 	}
 
-	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, options.allFlags["portal"])
+	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, getEffectivePortal(options))
 	if err != nil {
 		return err
 	}
@@ -467,7 +490,7 @@ func setupIscsiImpl(api core.Session, options FlagMap) error {
 		}
 	}
 
-	portalId, err := LookupPortalIdOrCreate(api, DEFAULT_ISCSI_PORT, options.allFlags["portal"])
+	portalId, err := LookupPortalIdOrCreate(api, DEFAULT_ISCSI_PORT, getEffectivePortal(options))
 	if err != nil {
 		return err
 	}
@@ -475,7 +498,7 @@ func setupIscsiImpl(api core.Session, options FlagMap) error {
 		fmt.Println("Portal ID:", portalId)
 	}
 
-	initiatorId, err := LookupInitiatorOrCreateBlank(api, options.allFlags["initiator"])
+	initiatorId, err := LookupInitiatorOrCreateBlank(api, getEffectiveInitiator(options))
 	if err != nil {
 		return err
 	}
@@ -581,7 +604,7 @@ func locateIscsi(cmd *cobra.Command, api core.Session, args []string) error {
 
 	options, _ := GetCobraFlags(cmd, false, nil)
 
-	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, options.allFlags["portal"])
+	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, getEffectivePortal(options))
 	if err != nil {
 		return err
 	}
@@ -703,7 +726,7 @@ func activateIscsi(cmd *cobra.Command, api core.Session, args []string) error {
 
 	options, _ := GetCobraFlags(cmd, false, nil)
 
-	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, options.allFlags["portal"])
+	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, getEffectivePortal(options))
 	if err != nil {
 		return err
 	}
@@ -857,7 +880,7 @@ func deactivateIscsi(cmd *cobra.Command, api core.Session, args []string) error 
 		return err
 	}
 
-	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, options.allFlags["portal"])
+	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, getEffectivePortal(options))
 	if err != nil {
 		return err
 	}
@@ -919,7 +942,7 @@ func deleteIscsi(cmd *cobra.Command, api core.Session, args []string) error {
 		return err
 	}
 
-	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, options.allFlags["portal"])
+	ipPortalAddr, err := MaybeLookupIpPortFromPortal(api, DEFAULT_ISCSI_PORT, getEffectivePortal(options))
 	if err != nil {
 		return err
 	}
