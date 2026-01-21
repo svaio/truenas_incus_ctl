@@ -8,28 +8,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build & Development Commands
 
-### Build
+Requires Go 1.23.3+
+
 ```bash
+# Build
 go build
-```
 
-### Install
-```bash
+# Install
 go install
-```
 
-### Testing
-```bash
-# Run all tests
-go test -v ./cmd
+# Run all tests (recommended)
+./run_tests.sh
 
-# Run specific test files
+# Build, test, and install in one step
+./build-install.sh
+
+# Run specific test files (note: some tests require util_testing.go)
 go test -v ./cmd/dataset_test.go ./cmd/util_testing.go
 go test -v ./cmd/list_test.go ./cmd/util_testing.go
 go test -v ./cmd/nfs_test.go ./cmd/util_testing.go
 go test -v ./cmd/replication_test.go ./cmd/util_testing.go
 go test -v ./cmd/snapshot_test.go ./cmd/util_testing.go
 go test -v ./core/simple_queue_test.go
+
+# Run integration tests separately
+./test/test_home_fallback.sh
 ```
 
 ## Architecture
@@ -169,4 +172,3 @@ See `TESTING.md` for detailed guidelines and examples.
 - API errors: Use `core.ExtractApiError*()` functions
 - Validation errors: Build error messages with context
 - File operations: Wrap with descriptive error messages
-- Always provide actionable error messages to users
