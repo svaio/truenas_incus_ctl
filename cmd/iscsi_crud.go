@@ -77,7 +77,7 @@ var iscsiCrudFeatureMap = map[string]map[string]iscsiCrudFeature{
 		"extent": iscsiCrudFeature{kind: "String", defValue: "", description: "ID or name of extent"},
 	},
 	"initiator": map[string]iscsiCrudFeature{
-		"initiators": iscsiCrudFeature{kind: "String", defValue: "", description: "List of initiators in this group"},
+		"initiators": iscsiCrudFeature{kind: "StringArray", defValue: "", description: "Comma-separated list of initiator IQNs, or JSON array (e.g. iqn1,iqn2 or [\"iqn1\",\"iqn2\"])"},
 		"comment":    iscsiCrudFeature{kind: "String", defValue: "", description: "Initiator group description/comment"},
 	},
 	"portal": map[string]iscsiCrudFeature{

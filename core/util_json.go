@@ -168,9 +168,10 @@ func IpPortToJsonString(str string, defaultHostname string, defaultPort int) str
 // StringToJsonArray converts a comma-separated string or JSON array string to a Go slice.
 // If the input starts with '[', it's parsed as JSON array.
 // Otherwise, it's split by comma into a string slice.
-func StringToJsonArray(str string) interface{} {
+// Always returns []interface{} for type consistency.
+func StringToJsonArray(str string) []interface{} {
 	if str == "" {
-		return []string{}
+		return []interface{}{}
 	}
 	if strings.HasPrefix(str, "[") {
 		var result []interface{}
@@ -181,7 +182,7 @@ func StringToJsonArray(str string) interface{} {
 	}
 	// Split by comma and trim whitespace
 	parts := strings.Split(str, ",")
-	result := make([]string, 0, len(parts))
+	result := make([]interface{}, 0, len(parts))
 	for _, part := range parts {
 		trimmed := strings.TrimSpace(part)
 		if trimmed != "" {
