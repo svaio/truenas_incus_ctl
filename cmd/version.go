@@ -39,8 +39,9 @@ import (
 0.7.4 Add :port support to --host
 0.7.5 Add `share iscsi refresh` to refresh the iscsi bus
 0.7.6 Fix macos/windows compilation issues
+0.7.7-svaio Fix portal/initiator config values not being read from config.json
 */
-const VERSION = "0.7.6"
+const VERSION = "0.7.7-svaio"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
