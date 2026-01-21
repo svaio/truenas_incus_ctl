@@ -43,8 +43,9 @@ import (
 0.7.8-svaio Add --iscsi-portal and --iscsi-initiator global flags
 0.7.9-svaio Add TRUENAS_ISCSI_PORTAL and TRUENAS_ISCSI_INITIATOR env vars
 0.7.10-svaio Add /etc/truenas_incus_ctl.conf system config file support
+0.7.11-svaio Use first existing portal when --portal defaults to ":"
 */
-const VERSION = "0.7.10-svaio"
+const VERSION = "0.7.11-svaio"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",

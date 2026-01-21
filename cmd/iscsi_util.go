@@ -60,6 +60,15 @@ func LookupPortalIdOrCreate(api core.Session, defaultPort int, spec string) (int
 		return asInt, nil
 	}
 
+	// If spec is ":" (default), try to use the first existing portal
+	if spec == ":" {
+		portalId, err := LookupFirstExistingPortal(api)
+		if err == nil && portalId > 0 {
+			return portalId, nil
+		}
+		// No existing portal found, fall through to create one
+	}
+
 	hostName, _, err := net.SplitHostPort(api.GetHostName())
 	if err != nil {
 		// assume no port present
@@ -107,12 +116,45 @@ func LookupPortalIdOrCreate(api core.Session, defaultPort int, spec string) (int
 	return portalId, nil
 }
 
+// LookupFirstExistingPortal queries for all portals and returns the first one's ID
+func LookupFirstExistingPortal(api core.Session) (int, error) {
+	queryParams := []interface{}{
+		[]interface{}{}, // empty filter = all portals
+		map[string]interface{}{"limit": 1},
+	}
+	out, err := core.ApiCall(api, "iscsi.portal.query", defaultCallTimeout, queryParams)
+	if err != nil {
+		return -1, err
+	}
+	var response map[string]interface{}
+	if err = json.Unmarshal(out, &response); err != nil {
+		return -1, err
+	}
+	results, _ := response["result"].([]interface{})
+	if len(results) > 0 {
+		idObj := core.GetIdFromObject(results[0])
+		if n, errNotNumber := strconv.Atoi(fmt.Sprint(idObj)); errNotNumber == nil {
+			return n, nil
+		}
+	}
+	return -1, nil
+}
+
 func MaybeLookupIpPortFromPortal(api core.Session, defaultPort int, spec string) (string, error) {
 	if spec == "" {
 		return "", fmt.Errorf("Portal was not specified (use ':' for the default portal)")
 	}
 
 	var ipPortObjMap map[string]interface{}
+
+	// If spec is ":" (default), look up the first existing portal
+	if spec == ":" {
+		portalId, err := LookupFirstExistingPortal(api)
+		if err == nil && portalId > 0 {
+			spec = fmt.Sprintf("%d", portalId)
+		}
+	}
+
 	if asInt, errNotNumber := strconv.Atoi(spec); errNotNumber == nil {
 		queryFilter := []interface{}{[]interface{}{"id", "=", asInt}}
 		queryParams := []interface{}{
