@@ -96,6 +96,29 @@ var iscsiCrudFeatureMap = map[string]map[string]iscsiCrudFeature{
 	},
 }
 
+// warnIfInvalidIqn prints a warning if the IQN format looks invalid.
+// Valid formats: iqn.yyyy-mm.domain:identifier, eui.xxxx, naa.xxxx, or ALL
+func warnIfInvalidIqn(iqn string) {
+	if iqn == "" {
+		return
+	}
+	upper := strings.ToUpper(iqn)
+	if upper == "ALL" {
+		return // Special keyword to allow all initiators
+	}
+	if strings.HasPrefix(iqn, "iqn.") {
+		// Basic validation: iqn.yyyy-mm.domain:identifier
+		if len(iqn) > 12 && iqn[8] == '-' {
+			return // Looks valid
+		}
+	}
+	if strings.HasPrefix(iqn, "eui.") || strings.HasPrefix(iqn, "naa.") {
+		return // EUI or NAA format
+	}
+	fmt.Printf("Warning: '%s' does not look like a valid IQN format.\n", iqn)
+	fmt.Println("  Expected formats: iqn.yyyy-mm.domain:identifier, eui.xxx, naa.xxx, or ALL")
+}
+
 func WrapIscsiCrudFunc(cmdFunc func(*cobra.Command, string, core.Session, []string) error, category string) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		api := InitializeApiClient()
@@ -434,6 +457,7 @@ func iscsiCrudUpdateCreate(cmd *cobra.Command, category string, api core.Session
 		}
 	}
 
+	// Handle special portal settings
 	if category == "portal" {
 		if shouldMatchHost {
 			outMap["listen"] = ":"
@@ -444,10 +468,30 @@ func iscsiCrudUpdateCreate(cmd *cobra.Command, category string, api core.Session
 		}
 	}
 
+	// Convert StringArray fields to proper JSON arrays
+	features := iscsiCrudFeatureMap[category]
+	for propName, value := range outMap {
+		if feature, exists := features[propName]; exists && feature.kind == "StringArray" {
+			// Skip "listen" as it has special IP:port handling above
+			if propName == "listen" {
+				continue
+			}
+			if valueStr, ok := value.(string); ok {
+				outMap[propName] = core.StringToJsonArray(valueStr)
+			}
+		}
+	}
+
+	// Validate initiator IQN format and warn if suspicious
 	if category == "initiator" {
 		if value, exists := outMap["initiators"]; exists {
-			valueStr, _ := value.(string)
-			outMap["initiators"] = core.StringToJsonArray(valueStr)
+			if arr, ok := value.([]interface{}); ok {
+				for _, item := range arr {
+					if iqn, ok := item.(string); ok {
+						warnIfInvalidIqn(iqn)
+					}
+				}
+			}
 		}
 	}
 
