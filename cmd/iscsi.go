@@ -15,13 +15,53 @@ import (
 
 const DEFAULT_ISCSI_PORT = 3260
 const DEFAULT_PORTAL_FLAG = ":"
+const SYSTEM_CONFIG_FILE = "/etc/truenas_incus_ctl.conf"
+
+var systemConfigCache map[string]string
+var systemConfigLoaded bool
+
+// loadSystemConfig reads key=value pairs from /etc/truenas_incus_ctl.conf
+func loadSystemConfig() map[string]string {
+	if systemConfigLoaded {
+		return systemConfigCache
+	}
+	systemConfigLoaded = true
+	systemConfigCache = make(map[string]string)
+
+	data, err := os.ReadFile(SYSTEM_CONFIG_FILE)
+	if err != nil {
+		return systemConfigCache
+	}
+
+	lines := strings.Split(string(data), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 {
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+			systemConfigCache[key] = value
+		}
+	}
+	return systemConfigCache
+}
+
+// getSystemConfigValue returns a value from /etc/truenas_incus_ctl.conf
+func getSystemConfigValue(key string) string {
+	config := loadSystemConfig()
+	return config[key]
+}
 
 // getEffectivePortal returns the portal value with fallback priority:
 // 1. Command-specific --portal flag (if not default ":")
 // 2. Global --iscsi-portal flag
 // 3. TRUENAS_ISCSI_PORTAL environment variable
-// 4. Config file "portal" value
-// 5. Default ":"
+// 4. /etc/truenas_incus_ctl.conf "portal" value
+// 5. User config file "portal" value
+// 6. Default ":"
 func getEffectivePortal(options FlagMap) string {
 	portal := options.allFlags["portal"]
 	if portal != DEFAULT_PORTAL_FLAG {
@@ -35,7 +75,11 @@ func getEffectivePortal(options FlagMap) string {
 	if envPortal := os.Getenv("TRUENAS_ISCSI_PORTAL"); envPortal != "" {
 		return envPortal
 	}
-	// Check config file
+	// Check system config file
+	if sysPortal := getSystemConfigValue("portal"); sysPortal != "" {
+		return sysPortal
+	}
+	// Check user config file
 	if configPortal := GetConfigString("portal"); configPortal != "" {
 		return configPortal
 	}
@@ -46,8 +90,9 @@ func getEffectivePortal(options FlagMap) string {
 // 1. Command-specific --initiator flag (if not empty)
 // 2. Global --iscsi-initiator flag
 // 3. TRUENAS_ISCSI_INITIATOR environment variable
-// 4. Config file "initiator" value
-// 5. Default ""
+// 4. /etc/truenas_incus_ctl.conf "initiator" value
+// 5. User config file "initiator" value
+// 6. Default ""
 func getEffectiveInitiator(options FlagMap) string {
 	initiator := options.allFlags["initiator"]
 	if initiator != "" {
@@ -61,7 +106,11 @@ func getEffectiveInitiator(options FlagMap) string {
 	if envInitiator := os.Getenv("TRUENAS_ISCSI_INITIATOR"); envInitiator != "" {
 		return envInitiator
 	}
-	// Check config file
+	// Check system config file
+	if sysInitiator := getSystemConfigValue("initiator"); sysInitiator != "" {
+		return sysInitiator
+	}
+	// Check user config file
 	if configInitiator := GetConfigString("initiator"); configInitiator != "" {
 		return configInitiator
 	}

@@ -42,8 +42,9 @@ import (
 0.7.7-svaio Fix portal/initiator config values not being read from config.json
 0.7.8-svaio Add --iscsi-portal and --iscsi-initiator global flags
 0.7.9-svaio Add TRUENAS_ISCSI_PORTAL and TRUENAS_ISCSI_INITIATOR env vars
+0.7.10-svaio Add /etc/truenas_incus_ctl.conf system config file support
 */
-const VERSION = "0.7.9-svaio"
+const VERSION = "0.7.10-svaio"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
