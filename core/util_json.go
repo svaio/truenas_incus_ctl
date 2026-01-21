@@ -165,6 +165,32 @@ func IpPortToJsonString(str string, defaultHostname string, defaultPort int) str
 	return "[{\"ip\":\"" + resolved + "\",\"port\":" + fmt.Sprint(port) + "}]"
 }
 
+// StringToJsonArray converts a comma-separated string or JSON array string to a Go slice.
+// If the input starts with '[', it's parsed as JSON array.
+// Otherwise, it's split by comma into a string slice.
+func StringToJsonArray(str string) interface{} {
+	if str == "" {
+		return []string{}
+	}
+	if strings.HasPrefix(str, "[") {
+		var result []interface{}
+		if err := json.Unmarshal([]byte(str), &result); err == nil {
+			return result
+		}
+		// If JSON parsing fails, fall through to comma-split
+	}
+	// Split by comma and trim whitespace
+	parts := strings.Split(str, ",")
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
+}
+
 func GetIdFromObject(obj interface{}) interface{} {
 	if obj == nil {
 		return nil

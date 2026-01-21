@@ -444,6 +444,13 @@ func iscsiCrudUpdateCreate(cmd *cobra.Command, category string, api core.Session
 		}
 	}
 
+	if category == "initiator" {
+		if value, exists := outMap["initiators"]; exists {
+			valueStr, _ := value.(string)
+			outMap["initiators"] = core.StringToJsonArray(valueStr)
+		}
+	}
+
 	cmd.SilenceUsage = true
 
 	method := "iscsi." + category
