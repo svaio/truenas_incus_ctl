@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/user"
 	"path"
 	"strings"
@@ -18,8 +19,9 @@ const DEFAULT_PORTAL_FLAG = ":"
 // getEffectivePortal returns the portal value with fallback priority:
 // 1. Command-specific --portal flag (if not default ":")
 // 2. Global --iscsi-portal flag
-// 3. Config file "portal" value
-// 4. Default ":"
+// 3. TRUENAS_ISCSI_PORTAL environment variable
+// 4. Config file "portal" value
+// 5. Default ":"
 func getEffectivePortal(options FlagMap) string {
 	portal := options.allFlags["portal"]
 	if portal != DEFAULT_PORTAL_FLAG {
@@ -28,6 +30,10 @@ func getEffectivePortal(options FlagMap) string {
 	// Check global --iscsi-portal flag
 	if globalPortal := GetGlobalIscsiPortal(); globalPortal != "" {
 		return globalPortal
+	}
+	// Check environment variable
+	if envPortal := os.Getenv("TRUENAS_ISCSI_PORTAL"); envPortal != "" {
+		return envPortal
 	}
 	// Check config file
 	if configPortal := GetConfigString("portal"); configPortal != "" {
@@ -39,8 +45,9 @@ func getEffectivePortal(options FlagMap) string {
 // getEffectiveInitiator returns the initiator value with fallback priority:
 // 1. Command-specific --initiator flag (if not empty)
 // 2. Global --iscsi-initiator flag
-// 3. Config file "initiator" value
-// 4. Default ""
+// 3. TRUENAS_ISCSI_INITIATOR environment variable
+// 4. Config file "initiator" value
+// 5. Default ""
 func getEffectiveInitiator(options FlagMap) string {
 	initiator := options.allFlags["initiator"]
 	if initiator != "" {
@@ -49,6 +56,10 @@ func getEffectiveInitiator(options FlagMap) string {
 	// Check global --iscsi-initiator flag
 	if globalInitiator := GetGlobalIscsiInitiator(); globalInitiator != "" {
 		return globalInitiator
+	}
+	// Check environment variable
+	if envInitiator := os.Getenv("TRUENAS_ISCSI_INITIATOR"); envInitiator != "" {
+		return envInitiator
 	}
 	// Check config file
 	if configInitiator := GetConfigString("initiator"); configInitiator != "" {

@@ -41,8 +41,9 @@ import (
 0.7.6 Fix macos/windows compilation issues
 0.7.7-svaio Fix portal/initiator config values not being read from config.json
 0.7.8-svaio Add --iscsi-portal and --iscsi-initiator global flags
+0.7.9-svaio Add TRUENAS_ISCSI_PORTAL and TRUENAS_ISCSI_INITIATOR env vars
 */
-const VERSION = "0.7.8-svaio"
+const VERSION = "0.7.9-svaio"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
