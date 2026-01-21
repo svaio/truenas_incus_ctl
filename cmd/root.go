@@ -31,6 +31,8 @@ var g_configName string
 var g_hostName string
 var g_apiKey string
 var g_hostConfig map[string]interface{}
+var g_iscsiPortal string
+var g_iscsiInitiator string
 
 func Execute() {
 	err := rootCmd.Execute()
@@ -47,6 +49,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&g_configName, "config", "C", "", "Name of config to look up in config.json, defaults to first entry")
 	rootCmd.PersistentFlags().StringVarP(&g_hostName, "host", "H", "", "Server hostname or ip with optional port or URL")
 	rootCmd.PersistentFlags().StringVarP(&g_apiKey, "api-key", "K", "", "API key")
+	rootCmd.PersistentFlags().StringVar(&g_iscsiPortal, "iscsi-portal", "", "Default iSCSI portal ID or [ip]:[port]")
+	rootCmd.PersistentFlags().StringVar(&g_iscsiInitiator, "iscsi-initiator", "", "Default iSCSI initiator ID or comment")
 
 	daemonCmd.Flags().StringP("timeout", "t", "", "Exit the daemon if no communication occurs after this duration")
 
@@ -315,4 +319,14 @@ func GetConfigString(key string) string {
 		}
 	}
 	return ""
+}
+
+// GetGlobalIscsiPortal returns the global iSCSI portal setting (from --iscsi-portal flag)
+func GetGlobalIscsiPortal() string {
+	return g_iscsiPortal
+}
+
+// GetGlobalIscsiInitiator returns the global iSCSI initiator setting (from --iscsi-initiator flag)
+func GetGlobalIscsiInitiator() string {
+	return g_iscsiInitiator
 }

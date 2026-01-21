@@ -15,24 +15,44 @@ import (
 const DEFAULT_ISCSI_PORT = 3260
 const DEFAULT_PORTAL_FLAG = ":"
 
-// getEffectivePortal returns the portal value, using config fallback if the flag is at default
+// getEffectivePortal returns the portal value with fallback priority:
+// 1. Command-specific --portal flag (if not default ":")
+// 2. Global --iscsi-portal flag
+// 3. Config file "portal" value
+// 4. Default ":"
 func getEffectivePortal(options FlagMap) string {
 	portal := options.allFlags["portal"]
-	if portal == DEFAULT_PORTAL_FLAG {
-		if configPortal := GetConfigString("portal"); configPortal != "" {
-			return configPortal
-		}
+	if portal != DEFAULT_PORTAL_FLAG {
+		return portal
+	}
+	// Check global --iscsi-portal flag
+	if globalPortal := GetGlobalIscsiPortal(); globalPortal != "" {
+		return globalPortal
+	}
+	// Check config file
+	if configPortal := GetConfigString("portal"); configPortal != "" {
+		return configPortal
 	}
 	return portal
 }
 
-// getEffectiveInitiator returns the initiator value, using config fallback if the flag is empty
+// getEffectiveInitiator returns the initiator value with fallback priority:
+// 1. Command-specific --initiator flag (if not empty)
+// 2. Global --iscsi-initiator flag
+// 3. Config file "initiator" value
+// 4. Default ""
 func getEffectiveInitiator(options FlagMap) string {
 	initiator := options.allFlags["initiator"]
-	if initiator == "" {
-		if configInitiator := GetConfigString("initiator"); configInitiator != "" {
-			return configInitiator
-		}
+	if initiator != "" {
+		return initiator
+	}
+	// Check global --iscsi-initiator flag
+	if globalInitiator := GetGlobalIscsiInitiator(); globalInitiator != "" {
+		return globalInitiator
+	}
+	// Check config file
+	if configInitiator := GetConfigString("initiator"); configInitiator != "" {
+		return configInitiator
 	}
 	return initiator
 }
