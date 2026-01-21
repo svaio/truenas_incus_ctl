@@ -95,6 +95,13 @@ func InitializeApiClient() core.Session {
 		if obj, exists := config["daemon_socket"]; exists {
 			g_daemonSocketOverride, _ = obj.(string)
 		}
+	} else {
+		// Even when credentials are provided directly, try to load config
+		// for additional settings like portal/initiator
+		_, _, config, err := findCredsFromConfig(g_configFileName, g_configName, g_hostName, g_apiKey)
+		if err == nil {
+			g_hostConfig = config
+		}
 	}
 	if USE_DAEMON {
 		socketPath := g_daemonSocketOverride
