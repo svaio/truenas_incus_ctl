@@ -203,7 +203,7 @@ func GetIdFromObject(obj interface{}) interface{} {
 		return objI
 	} else if objMap, ok := obj.(map[string]interface{}); ok {
 		return objMap["id"]
-	} else if objArr, ok := obj.([]interface{}); ok {
+	} else if objArr, ok := obj.([]interface{}); ok && len(objArr) > 0 {
 		return GetIdFromObject(objArr[0])
 	}
 	return nil

@@ -565,7 +565,7 @@ func iscsiCrudUpdateCreate(cmd *cobra.Command, category string, api core.Session
 			msg := fmt.Sprintf("%d matches for this %s were found:", len(resultsList), category)
 			columnsList := GetUsedPropertyColumns(resultsList, []string{"id"})
 			str, err := core.BuildTableData("compact", category+"s", columnsList, resultsList)
-			if err != nil {
+			if err == nil {
 				msg += "\n" + str
 			}
 			return fmt.Errorf(msg)
@@ -597,9 +597,6 @@ func iscsiCrudUpdateCreate(cmd *cobra.Command, category string, api core.Session
 }
 
 func iscsiCrudDelete(cmd *cobra.Command, category string, api core.Session, args []string) error {
-	options, _ := GetCobraFlags(cmd, false, nil)
-	options = options
-
 	cmd.SilenceUsage = true
 
 	extras := typeQueryParams{
